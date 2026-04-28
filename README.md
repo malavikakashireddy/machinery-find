@@ -1,60 +1,36 @@
-# 🏗️ MachineryFind
-
-A full-stack heavy equipment marketplace built with **Next.js 15**, **TypeScript**, and **Tailwind CSS**.
-
-## Features
-
-- **REST API** — `/api/listings` endpoint with query param filtering (category, condition, search, maxPrice)
-- **Real-time search** — debounced client-side search with live results
-- **Filter chips** — filter by equipment category and condition
-- **Responsive grid** — auto-fill card layout that adapts to viewport
-- **Dark UI** — custom design system with CSS variables and Google Fonts
-
-## Tech Stack
-
-| Layer | Tech |
-|-------|------|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS + CSS Variables |
-| API | Next.js Route Handlers |
-| Fonts | Google Fonts (Bebas Neue, DM Sans, DM Mono) |
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
+First, run the development server:
+
 ```bash
-npm install
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## API
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-```
-GET /api/listings
-  ?search=caterpillar    # text search on name, description, location
-  ?category=Excavators   # filter by category
-  ?condition=Used        # filter by condition
-  ?maxPrice=200000       # filter by max price
-```
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Project Structure
+## Learn More
 
-```
-app/
-├── api/
-│   └── listings/
-│       └── route.ts     # REST API with filtering logic
-├── page.tsx             # Main listing page (client component)
-├── layout.tsx           # Root layout
-└── globals.css          # Design tokens + custom styles
-```
+To learn more about Next.js, take a look at the following resources:
 
-## Deployment
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Ready to deploy on [Vercel](https://vercel.com) — just connect the repo.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
----
+## Deploy on Vercel
 
-Built by [Malavika Kashireddy](https://github.com/malavikakashireddy)
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
