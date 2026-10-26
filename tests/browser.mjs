@@ -38,7 +38,7 @@ try {
   let fail = true;
   await page.route("**/api/listings*", route => fail ? route.fulfill({ status: 503, body: "unavailable" }) : route.continue());
   await input.fill("Detroit");
-  await page.getByRole("alert").waitFor();
+  await page.getByRole("alert").filter({ hasText: "Unable to load equipment" }).waitFor();
   fail = false;
   await page.getByRole("button", { name: "Retry", exact: true }).click();
   await page.getByText("No equipment found", { exact: true }).waitFor(); // Detroit has a crane, not an excavator.
@@ -52,8 +52,9 @@ try {
     }
     await route.continue().catch(() => {}); // an obsolete fetch can be aborted
   });
+  const oldRequest = page.waitForRequest(request => new URL(request.url()).searchParams.get("search") === "Chicago");
   await input.fill("Chicago");
-  await page.waitForRequest(request => new URL(request.url()).searchParams.get("search") === "Chicago");
+  await oldRequest;
   await input.fill("Detroit");
   await page.getByRole("heading", { name: "Liebherr LTM 1100 Crane" }).waitFor();
   await new Promise(resolve => setTimeout(resolve, 800));
