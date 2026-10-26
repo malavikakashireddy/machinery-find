@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import type { Listing } from "./api/listings/route";
-
-const CATEGORIES = ["All", "Excavators", "Agricultural", "Cranes", "Dozers", "Telehandlers", "Compressors", "Compaction"];
-const CONDITIONS = ["All", "New", "Like New", "Used", "Parts Only"];
+import { useState, useEffect } from "react";
+import { CATEGORIES, CONDITIONS } from "@/lib/listings";
+import type { Listing } from "@/lib/listings";
 
 const ICONS: Record<string, string> = {
   excavator: "⛏️", tractor: "🚜", crane: "🏗️",
@@ -26,38 +24,55 @@ function formatPrice(n: number) {
 }
 
 export default function Home() {
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [response, setResponse] = useState<{ key: string; listings: Listing[]; total: number; error: string | null } | null>(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [condition, setCondition] = useState("All");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 280);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setDebouncedSearch(search), 280);
+    return () => clearTimeout(timer);
   }, [search]);
 
-  const fetchListings = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (debouncedSearch) params.set("search", debouncedSearch);
-    if (category !== "All") params.set("category", category);
-    if (condition !== "All") params.set("condition", condition);
-    const res = await fetch(`/api/listings?${params}`);
-    const data = await res.json();
-    setListings(data.listings);
-    setTotal(data.total);
-    setLoading(false);
-  }, [debouncedSearch, category, condition]);
+  const params = new URLSearchParams();
+  if (debouncedSearch) params.set("search", debouncedSearch);
+  if (category !== "All") params.set("category", category);
+  if (condition !== "All") params.set("condition", condition);
+  const queryKey = params.toString();
 
-  useEffect(() => { fetchListings(); }, [fetchListings]);
+  useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      try {
+        const res = await fetch(`/api/listings?${queryKey}`, { signal: controller.signal });
+        if (!res.ok) throw new Error(`Request failed (${res.status})`);
+        const data = await res.json();
+        if (!Array.isArray(data.listings) || typeof data.total !== "number") {
+          throw new Error("Invalid listing response");
+        }
+        if (!controller.signal.aborted) setResponse({ key: queryKey, listings: data.listings, total: data.total, error: null });
+      } catch {
+        if (!controller.signal.aborted) {
+          setResponse({ key: queryKey, listings: [], total: 0, error: "Unable to load equipment. Please try again." });
+        }
+      }
+    }
+    void load();
+    return () => controller.abort();
+  }, [queryKey, retry]);
+
+  const loading = response?.key !== queryKey;
+  const listings = response?.listings ?? [];
+  const total = response?.total ?? 0;
+  const error = loading ? null : response?.error;
 
   return (
     <div className="noise min-h-screen" style={{ background: "var(--bg)" }}>
       {/* Header */}
-      <header style={{ borderBottom: "1px solid var(--border)", background: "rgba(14,14,14,0.9)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
+      <a className="skip-link" href="#listings">Skip to equipment listings</a>
+      <header className="market-header" style={{ borderBottom: "1px solid var(--border)", background: "rgba(14,14,14,0.9)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 22 }}>🏗️</span>
@@ -87,7 +102,7 @@ export default function Home() {
             As You Do
           </h1>
           <p className="fade-up" style={{ color: "var(--text-secondary)", fontSize: 16, marginTop: 16, animationDelay: "0.1s", maxWidth: 520 }}>
-            Browse verified machinery listings across the Midwest. Excavators, tractors, cranes, and more.
+            Explore sample machinery listings across the Midwest. This is a browsing demo with fictional inventory. Excavators, tractors, cranes, and more.
           </p>
 
           {/* Search */}
@@ -96,6 +111,9 @@ export default function Home() {
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
             </svg>
             <input
+              type="search"
+              aria-label="Search equipment by name, type, or location"
+              maxLength={100}
               className="search-input"
               style={{ paddingLeft: 40 }}
               placeholder="Search by name, type, location..."
@@ -107,28 +125,31 @@ export default function Home() {
       </div>
 
       {/* Filters */}
-      <div style={{ borderBottom: "1px solid var(--border)", background: "rgba(22,22,22,0.8)", backdropFilter: "blur(8px)", position: "sticky", top: 60, zIndex: 40 }}>
+      <div className="filter-bar" style={{ borderBottom: "1px solid var(--border)", background: "rgba(22,22,22,0.8)", backdropFilter: "blur(8px)", position: "sticky", top: 60, zIndex: 40 }}>
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "12px 24px", display: "flex", gap: 24, overflowX: "auto" }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>Category</span>
             {CATEGORIES.map(c => (
-              <button key={c} className={`chip ${category === c ? "active" : ""}`} onClick={() => setCategory(c)}>{c}</button>
+              <button key={c} className={`chip ${category === c ? "active" : ""}`} aria-pressed={category === c} onClick={() => setCategory(c)}>{c}</button>
             ))}
           </div>
           <div style={{ width: 1, background: "var(--border)", flexShrink: 0 }} />
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>Condition</span>
             {CONDITIONS.map(c => (
-              <button key={c} className={`chip ${condition === c ? "active" : ""}`} onClick={() => setCondition(c)}>{c}</button>
+              <button key={c} className={`chip ${condition === c ? "active" : ""}`} aria-pressed={condition === c} onClick={() => setCondition(c)}>{c}</button>
             ))}
           </div>
         </div>
       </div>
 
       {/* Listings */}
-      <main style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 24px 64px" }}>
-        {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+      <main id="listings" tabIndex={-1} aria-busy={loading} style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 24px 64px" }}>
+        <p className="sr-only" role="status" aria-live="polite">{loading ? "Loading equipment" : error ? "Equipment could not be loaded" : `${total} results`}</p>
+        {error ? (
+          <div role="alert"><p>{error}</p><button className="chip" onClick={() => { setResponse(null); setRetry(value => value + 1); }}>Retry</button></div>
+        ) : loading ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))", gap: 16 }}>
             {[...Array(6)].map((_, i) => (
               <div key={i} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 10, height: 220, animation: "pulse 1.5s infinite" }} />
             ))}
@@ -143,14 +164,14 @@ export default function Home() {
           <>
             <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20, fontFamily: "DM Mono, monospace" }}>
               Showing <span style={{ color: "var(--accent)" }}>{total}</span> result{total !== 1 ? "s" : ""}
-              {search && <> for "<span style={{ color: "var(--text-secondary)" }}>{search}</span>"</>}
+              {debouncedSearch && <> for &ldquo;<span style={{ color: "var(--text-secondary)" }}>{debouncedSearch}</span>&rdquo;</>}
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(310px, 1fr))", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 310px), 1fr))", gap: 16 }}>
               {listings.map((listing, i) => (
                 <article
                   key={listing.id}
                   className="listing-card fade-up"
-                  style={{ padding: 20, cursor: "pointer", animationDelay: `${i * 0.05}s` }}
+                  style={{ padding: 20, animationDelay: `${i * 0.05}s` }}
                 >
                   {/* Card header */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
@@ -194,16 +215,14 @@ export default function Home() {
                     </div>
                   </div>
 
+                  <details>
+                    <summary>Equipment details</summary>
+                    <p style={{ color: "var(--text-secondary)", lineHeight: 1.6 }}>{listing.description}</p>
+                  </details>
                   {/* Footer */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 14, borderTop: "1px solid var(--border)" }}>
                     <span className="font-display" style={{ fontSize: 22, color: "var(--text-primary)" }}>{formatPrice(listing.price)}</span>
-                    <button
-                      style={{ background: "var(--accent)", color: "#fff", border: "none", borderRadius: 6, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "DM Sans, sans-serif", transition: "opacity 0.15s" }}
-                      onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")}
-                      onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
-                    >
-                      Contact Seller →
-                    </button>
+                    <span className="sample-label">Sample inventory</span>
                   </div>
                 </article>
               ))}

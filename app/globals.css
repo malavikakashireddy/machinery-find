@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=DM+Mono:wght@400;500&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --bg: #0e0e0e;
@@ -14,8 +12,8 @@
   --accent-dim: rgba(249,115,22,0.15);
   --accent-glow: rgba(249,115,22,0.25);
   --text-primary: #f0f0f0;
-  --text-secondary: #888;
-  --text-muted: #555;
+  --text-secondary: #b0b0b0;
+  --text-muted: #a3a3a3;
   --green: #22c55e;
   --yellow: #eab308;
   --red: #ef4444;
@@ -81,7 +79,7 @@ body {
   user-select: none;
 }
 .chip:hover { border-color: var(--border-hover); color: var(--text-primary); }
-.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.chip.active { background: var(--accent); border-color: var(--accent); color: #151515; font-weight: 600; }
 
 .badge {
   display: inline-block;
@@ -102,3 +100,23 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 .fade-up { animation: fadeUp 0.35s ease both; }
+
+:focus-visible { outline: 3px solid #f97316; outline-offset: 4px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.skip-link { position: absolute; left: 12px; top: -80px; z-index: 100; padding: 12px; background: #fff; color: #111; }
+.skip-link:focus { top: 12px; }
+summary { cursor: pointer; margin-bottom: 16px; color: var(--text-secondary); }
+.sample-label { color: var(--text-muted); font-size: 12px; }
+@media (max-width: 480px) {
+  .market-header { position: static !important; }
+  .market-header > div { padding: 12px !important; height: auto !important; min-height: 60px; gap: 8px; flex-wrap: wrap; }
+  .filter-bar { top: 0 !important; }
+  .market-header .font-display { font-size: 20px !important; }
+  .market-header .font-mono { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+.listing-card { min-width: 0; }
+footer a { overflow-wrap: anywhere; }
