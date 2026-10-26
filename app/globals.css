@@ -108,10 +108,15 @@ body {
 summary { cursor: pointer; margin-bottom: 16px; color: var(--text-secondary); }
 .sample-label { color: var(--text-muted); font-size: 12px; }
 @media (max-width: 480px) {
-  .market-header > div { padding-inline: 12px !important; gap: 8px; }
+  .market-header { position: static !important; }
+  .market-header > div { padding: 12px !important; height: auto !important; min-height: 60px; gap: 8px; flex-wrap: wrap; }
+  .filter-bar { top: 0 !important; }
   .market-header .font-display { font-size: 20px !important; }
   .market-header .font-mono { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+.listing-card { min-width: 0; }
+footer a { overflow-wrap: anywhere; }

@@ -125,7 +125,7 @@ export default function Home() {
       </div>
 
       {/* Filters */}
-      <div style={{ borderBottom: "1px solid var(--border)", background: "rgba(22,22,22,0.8)", backdropFilter: "blur(8px)", position: "sticky", top: 60, zIndex: 40 }}>
+      <div className="filter-bar" style={{ borderBottom: "1px solid var(--border)", background: "rgba(22,22,22,0.8)", backdropFilter: "blur(8px)", position: "sticky", top: 60, zIndex: 40 }}>
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "12px 24px", display: "flex", gap: 24, overflowX: "auto" }}>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>Category</span>
@@ -144,7 +144,7 @@ export default function Home() {
       </div>
 
       {/* Listings */}
-      <main id="listings" aria-busy={loading} style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 24px 64px" }}>
+      <main id="listings" tabIndex={-1} aria-busy={loading} style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 24px 64px" }}>
         <p className="sr-only" role="status" aria-live="polite">{loading ? "Loading equipment" : error ? "Equipment could not be loaded" : `${total} results`}</p>
         {error ? (
           <div role="alert"><p>{error}</p><button className="chip" onClick={() => { setResponse(null); setRetry(value => value + 1); }}>Retry</button></div>
