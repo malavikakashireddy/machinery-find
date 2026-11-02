@@ -4,6 +4,18 @@ A heavy-equipment browsing demo with a Next.js App Router API and a TypeScript/R
 
 **Scope:** read-only catalog prototype. Inventory is checked-in sample data, not verified seller inventory. There is no database, authentication, seller messaging, listing creation, checkout, or payment integration.
 
+## Review the implementation in five minutes
+
+Start with the behavior, then inspect how it is protected:
+
+1. Run the app using the commands below. Filter to **Excavators**, search **Chicago**, and open **Equipment details**. Search a nonexistent term to see the empty state.
+2. Read [the client](app/page.tsx): debounced input, query-keyed responses, `AbortController` cleanup, and explicit loading/error/retry states. The invariant is that an obsolete request must not replace the active query's results.
+3. Read [the query logic](lib/listings.ts) and [HTTP adapter](app/api/listings/route.ts): validation is shared with the filtering rules rather than spread through the UI.
+4. Inspect [browser regressions](tests/browser.mjs): a delayed Chicago request must not overwrite a newer Detroit result; simulated HTTP 503s must expose a retry path. The script also checks four viewport widths.
+5. Review [dated validation evidence](docs/VALIDATION.md) before drawing conclusions about test coverage or deployment.
+
+**Why this scope?** The demo has nine fictional records, so a linear filter is simpler than adding a database or search service. It demonstrates UI/API integration and failure handling, not real seller operations or production scale. A next iteration should validate buyer workflows before expanding the feature set.
+
 ## Engineering highlights
 
 - A shared `Listing` model and pure filtering module keep inventory/query rules independent from the route handler and UI.
